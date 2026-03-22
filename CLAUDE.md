@@ -10,7 +10,7 @@ The full product vision is in `PRD.md`.
 
 ## How it works
 
-Two-skill architecture:
+Three-skill architecture:
 
 **`domain-profiler`** — run once per user. Reads their resume or personal info files and builds a
 structured knowledge profile: domains they know, technical vocabulary, and most importantly a set
@@ -23,16 +23,32 @@ the concept being taught, checks it with the user, then teaches interactively �
 response, always followed by a question that requires reasoning. Writes newly learned concepts
 back to the profile so it accumulates over time.
 
+**`profile-enricher`** — run at the end of any session. Scans what the user said during the
+conversation and writes back newly revealed domain knowledge — experiences, vocabulary, and
+potential anchors that weren't in the original profile. Distinct from anchor-teach's write-back:
+anchor-teach captures what the user *learned*; profile-enricher captures what the user *already
+knew but hadn't yet told the system*. Only appends genuinely new content, never overwrites.
+
 ## Key files
 
 ```
-CLAUDE.md                  — this file
-PRD.md                     — full product requirements document
-domain-profiler/SKILL.md   — skill that bootstraps a knowledge profile from a resume
-anchor-teach/SKILL.md      — skill that teaches interactively using the profile
-domain-profiler.skill      — packaged installable skill
-anchor-teach.skill         — packaged installable skill
+CLAUDE.md                    — this file
+PRD.md                       — full product requirements document
+domain-profiler/SKILL.md     — skill that bootstraps a knowledge profile from a resume
+anchor-teach/SKILL.md        — skill that teaches interactively using the profile
+profile-enricher/SKILL.md    — skill that listens and updates the profile from conversation
+domain-profiler.skill        — packaged installable skill
+anchor-teach.skill           — packaged installable skill
+profile-enricher.skill       — packaged installable skill
 ```
+
+## Implicit profiling rule
+
+**Always profile, never ask.** Whenever the user shares personal information — a resume, work
+history, project descriptions, background, skills, or any domain knowledge — immediately run the
+domain-profiler and update the knowledge profile without asking for permission first. Do not prompt
+the user to confirm. Treat any personal or domain content as an implicit instruction to add it to
+the profile. If a knowledge profile already exists, append new information rather than overwriting.
 
 ## Core design principles
 
@@ -46,9 +62,9 @@ away from reading.
 **Teach by asking, not by telling.** The insight should emerge from the user's answer, not from
 the explanation. Ask a question that makes them reason their way to the concept.
 
-**Profile grows over time.** After each session, newly learned concepts get written back to
-`knowledge-profile/overview.md`. The system knows what the user already understands so it can
-build on top of it next time, not start from scratch.
+**Profile grows in two directions.** anchor-teach writes back what the user learned. profile-enricher
+writes back what the user revealed about themselves. Both append to `knowledge-profile/overview.md`
+so the system accumulates knowledge over time and never starts from scratch.
 
 **Token-efficient by design.** The domain-profiler is the expensive one-time cost. The
 anchor-teach skill reads two small files per session. Don't re-read the full resume on every

@@ -1,0 +1,17 @@
+{
+  "skill_name": "profile-enricher",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "Hey, can you update my knowledge profile from our conversation? My profile is at /sessions/awesome-great-euler/domain-profiler-workspace/iteration-1/eval-0-personal-infos/with_skill/outputs/knowledge-profile/. During our session I mentioned a few things: I spent 6 months early in my career doing embedded C work on IoT sensors before switching to web development. I also described how I once debugged a memory leak in a Node.js service by heap-dumping the process mid-flight and diffing two snapshots — I'd never seen that technique written down anywhere, I just figured it out. And I mentioned I've been reading about CRDTs lately because I'm curious about collaborative editing.",
+      "expected_output": "Skill reads overview.md and analogy-anchors.md only. Identifies 3 new signals: (1) embedded C / IoT as a new domain not in the profile, (2) heap-dump memory leak debugging as a new concrete experience and potential analogy anchor, (3) CRDTs as new vocabulary / depth signal. Appends a dated update to overview.md and adds the heap-dump story as a new analogy anchor. Does NOT rewrite existing content.",
+      "files": []
+    },
+    {
+      "id": 1,
+      "prompt": "Update my profile based on this conversation. Profile is at /sessions/awesome-great-euler/domain-profiler-workspace/iteration-1/eval-0-personal-infos/with_skill/outputs/knowledge-profile/. In our conversation today the user only talked about things already in the profile — they discussed their Nyquiste work and the LLM eval framework they built there. Nothing new came up.",
+      "expected_output": "Skill correctly identifies that nothing genuinely new was revealed — the Nyquiste work and LLM eval framework are already in the profile. Writes nothing (or a minimal no-op update note). Does not pad with redundant information.",
+      "files": []
+    }
+  ]
+}
