@@ -1,0 +1,17 @@
+{
+  "skill_name": "domain-profiler",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "I have my personal info files in /sessions/awesome-great-euler/mnt/teach-me/personal-infos/. Can you build a knowledge profile from them? I want to understand what domains I know and have a set of analogy anchors I can use when learning new concepts.",
+      "expected_output": "A knowledge-profile/ folder containing overview.md, a domains/ subfolder with per-domain files, analogy-anchors.md, and vocabulary.md. The analogy anchors should be specific and conceptually rich — not just 'used Kubernetes' but concrete experiences that embed teachable abstract concepts.",
+      "files": []
+    },
+    {
+      "id": 1,
+      "prompt": "Here's my background: I'm a data scientist with 4 years of experience. I've built ML pipelines in scikit-learn and PyTorch, done a lot of feature engineering on tabular data, and deployed models with FastAPI. I've also done a fair amount of SQL — writing complex joins and window functions for analytics queries. Most recently I built a churn prediction model where I had to carefully tune the decision threshold to balance precision and recall for a business use case. Can you extract my domain knowledge and save it as a knowledge profile?",
+      "expected_output": "A knowledge-profile/ folder with overview.md, domain files (ml-modeling.md, data-engineering.md or similar), analogy-anchors.md with conceptually rich anchors (e.g., precision-recall tradeoff as anchor for optimization under constraints, window functions as anchor for time-series concepts), and vocabulary.md.",
+      "files": []
+    }
+  ]
+}

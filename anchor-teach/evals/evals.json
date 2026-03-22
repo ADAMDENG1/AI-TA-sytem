@@ -1,0 +1,17 @@
+{
+  "skill_name": "anchor-teach",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "I want to understand what a Fourier transform is. My knowledge profile is at /sessions/awesome-great-euler/domain-profiler-workspace/iteration-1/eval-0-personal-infos/with_skill/outputs/knowledge-profile/",
+      "expected_output": "Skill reads overview.md and analogy-anchors.md only (not all domain files). Picks the most conceptually appropriate anchor (ideally something involving signals, time-series, frequency, or periodic patterns — if none exist, the closest available). Checks with the user before teaching. Teaches interactively with one idea per response, starting from the anchor and building toward the formal concept. Does NOT dump a full explanation of Fourier transforms in one shot.",
+      "files": []
+    },
+    {
+      "id": 1,
+      "prompt": "Can you teach me what gradient descent is? I don't have a knowledge profile set up yet, but I work as a frontend developer — I mostly build React apps, manage component state, and do a bit of CSS animation work.",
+      "expected_output": "Skill gracefully handles missing knowledge profile by asking the user for background (or using the inline description provided). Picks an appropriate anchor from what they described (e.g., CSS animation easing / interpolation, or state converging toward a target). Checks the anchor with the user. Teaches gradient descent interactively, one layer at a time.",
+      "files": []
+    }
+  ]
+}
