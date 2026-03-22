@@ -47,7 +47,7 @@ Save all output files to a `knowledge-profile/` folder in the workspace. Create 
 ### `overview.md`
 
 A concise (one page) summary covering:
-- Who they are: name, education, level of experience, years in the field
+- Who they are: education level, years of experience, seniority — no name or employer
 - Their 2–3 primary domains in plain language
 - Their strongest analogy potential: the 2–3 real experiences that are richest for teaching new concepts
 - Any signals about how they learn and think (e.g., "approaches problems by instrumenting and measuring", "builds things to understand them", "thinks in systems and pipelines")
@@ -101,6 +101,22 @@ Format each anchor like this:
 
 ---
 
+### `experience.md`
+
+A chronological record of the person's work and project experience, written in plain language.
+For each role or significant project, capture:
+
+- **Role**: their function (e.g. "Senior backend engineer", "ML platform lead") — no employer name
+- **Duration**: approximate time period (e.g. "2 years", "6 months")
+- **What they built**: the concrete systems, features, or products they were responsible for
+- **Scale/context**: team size, user volume, data scale, or other signals of scope
+- **Key decisions**: meaningful technical choices they made and why
+- **What they learned**: skills, patterns, or lessons that stuck
+
+This file is the raw experience record. The domains/ files and analogy-anchors.md draw from it.
+
+---
+
 ### `vocabulary.md`
 
 A flat list of technical terms they use comfortably, grouped by domain. A teacher can use these
@@ -128,6 +144,27 @@ where everyday engineering work secretly contains deep mathematical or scientifi
 token billing proxy is secretly a Riemann sum. A queue-based worker with retries is secretly an
 exponential backoff / probability distribution. A monitoring dashboard with rate-of-change alerts
 is secretly calculus. Look for these.
+
+---
+
+## Desensitize all entity names
+
+Before writing any profile file, strip out identifying information. The knowledge profile captures
+*what someone knows*, not *where they worked* or *who they worked with*. Replace:
+
+| Replace this | With something like |
+|---|---|
+| Employer / company names | role-based descriptor: "a fintech startup", "a large tech company", "an enterprise SaaS company", "a consulting firm" |
+| People's names (colleagues, clients, managers) | role: "a senior engineer", "a client", "a product manager" |
+| Specific internal project / product names | generic description: "a billing pipeline", "an internal ML platform", "a customer-facing API" |
+| University / institution names | generic: "a university", "a bootcamp" |
+
+**Why this matters:** The profile is used by a teaching system that only needs the conceptual
+substance of someone's experience — not their résumé details. Desensitizing also makes the profile
+safe to store and share without exposing PII.
+
+Keep all technical specifics (numbers, scale, technologies, patterns, decisions). Only the
+*identifying labels* get replaced.
 
 ---
 

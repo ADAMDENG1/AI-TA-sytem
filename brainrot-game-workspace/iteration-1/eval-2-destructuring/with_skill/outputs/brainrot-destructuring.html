@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Brainrot: Array Destructuring</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      width: 100vw;
+      height: 100vh;
+      background-color: #09090b;
+      background-image:
+        linear-gradient(rgba(255,255,255,.016) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.016) 1px, transparent 1px);
+      background-size: 40px 40px;
+      color: #f2ede3;
+      font-family: system-ui, sans-serif;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .header {
+      padding: 20px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255,255,255,0.11);
+      background-color: rgba(0,0,0,0.3);
+    }
+
+    .header h1 {
+      font-size: 24px;
+      font-weight: 600;
+    }
+
+    .header-stats {
+      display: flex;
+      gap: 40px;
+      font-size: 16px;
+    }
+
+    .stat {
+      color: #c8c2b4;
+    }
+
+    .stat strong {
+      color: #f2ede3;
+      font-weight: 600;
+    }
+
+    .container {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+      overflow: hidden;
+    }
+
+    .challenge {
+      background-color: #1a1a1e;
+      border: 1px solid rgba(255,255,255,0.11);
+      border-radius: 12px;
+      padding: 60px;
+      max-width: 900px;
+      width: 100%;
+      max-height: 80%;
+      display: flex;
+      flex-direction: column;
+      gap: 40px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    }
+
+    .challenge-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: #f2ede3;
+      margin-bottom: 20px;
+    }
+
+    .code-block {
+      background-color: #09090b;
+      border: 1px solid rgba(255,255,255,0.11);
+      border-radius: 8px;
+      padding: 24px;
+      font-family: 'Courier New', monospace;
+      font-size: 16px;
+      line-height: 1.6;
+      color: #f2ede3;
+      overflow-x: auto;
+    }
+
+    .code-line {
+      display: flex;
+      gap: 12px;
+    }
+
+    .code-line .line-num {
+      color: #666;
+      min-width: 24px;
+      text-align: right;
+      user-select: none;
+    }
+
+    .code-line .line-content {
+      flex: 1;
+    }
+
+    .keyword { color: #c8b8ff; }
+    .string { color: #2ab870; }
+    .number { color: #f0a030; }
+    .variable { color: #a8d5ff; }
+    .operator { color: #f2ede3; }
+
+    .question {
+      font-size: 18px;
+      color: #f2ede3;
+      margin-bottom: 20px;
+      font-weight: 500;
+    }
+
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .option {
+      padding: 16px 24px;
+      background-color: #26262c;
+      border: 2px solid rgba(255,255,255,0.11);
+      border-radius: 8px;
+      color: #f2ede3;
+      font-family: 'Courier New', monospace;
+      font-size: 15px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+    }
+
+    .option:hover:not(:disabled) {
+      background-color: #2f2f36;
+      border-color: rgba(255,255,255,0.2);
+      transform: translateX(4px);
+    }
+
+    .option:disabled {
+      cursor: default;
+      opacity: 0.6;
+    }
+
+    .option.correct {
+      background-color: rgba(42, 184, 112, 0.2);
+      border-color: #2ab870;
+      color: #2ab870;
+    }
+
+    .option.wrong {
+      background-color: rgba(232, 54, 54, 0.2);
+      border-color: #e83636;
+      color: #e83636;
+      animation: shake 0.3s ease;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-8px); }
+      75% { transform: translateX(8px); }
+    }
+
+    .feedback {
+      margin-top: 16px;
+      padding: 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      line-height: 1.5;
+      display: none;
+    }
+
+    .feedback.show {
+      display: block;
+    }
+
+    .feedback.correct {
+      background-color: rgba(42, 184, 112, 0.15);
+      border-left: 3px solid #2ab870;
+      color: #2ab870;
+    }
+
+    .feedback.wrong {
+      background-color: rgba(232, 54, 54, 0.15);
+      border-left: 3px solid #e83636;
+      color: #e83636;
+    }
+
+    .feedback-title {
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .next-button {
+      margin-top: 20px;
+      padding: 12px 32px;
+      background-color: #c8b8ff;
+      color: #09090b;
+      border: none;
+      border-radius: 6px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      align-self: flex-start;
+      display: none;
+    }
+
+    .next-button:hover {
+      background-color: #d9ceff;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 16px rgba(200, 184, 255, 0.3);
+    }
+
+    .next-button.show {
+      display: inline-block;
+    }
+
+    .end-screen {
+      text-align: center;
+      display: none;
+    }
+
+    .end-screen.show {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 24px;
+    }
+
+    .final-score {
+      font-size: 72px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .final-score.excellent {
+      color: #2ab870;
+    }
+
+    .final-score.good {
+      color: #f0a030;
+    }
+
+    .final-score.poor {
+      color: #e83636;
+    }
+
+    .verdict {
+      font-size: 28px;
+      font-weight: 600;
+      margin-bottom: 24px;
+    }
+
+    .verdict.excellent {
+      color: #2ab870;
+    }
+
+    .verdict.good {
+      color: #f0a030;
+    }
+
+    .verdict.poor {
+      color: #e83636;
+    }
+
+    .summary {
+      font-size: 16px;
+      color: #c8c2b4;
+      line-height: 1.6;
+      max-width: 600px;
+      margin-bottom: 32px;
+    }
+
+    .restart-button {
+      padding: 14px 36px;
+      background-color: #c8b8ff;
+      color: #09090b;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .restart-button:hover {
+      background-color: #d9ceff;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 16px rgba(200, 184, 255, 0.3);
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>🎮 Array Destructuring Drills</h1>
+    <div class="header-stats">
+      <div class="stat">Round <strong id="round">1</strong> of <strong>5</strong></div>
+      <div class="stat">Score: <strong id="score">0</strong>%</div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="challenge">
+      <div id="challenge-content"></div>
+      <div id="end-screen" class="end-screen">
+        <div class="final-score" id="final-score">75%</div>
+        <div class="verdict" id="verdict">Locked in</div>
+        <div class="summary" id="summary"></div>
+        <button class="restart-button">Run it again →</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const rounds = [
+      {
+        title: "Basic array destructuring",
+        code: `const arr = [1, 2, 3];
+const [a, b, c] = arr;`,
+        question: "What is the value of `b`?",
+        options: ["1", "2", "3", "undefined"],
+        correct: 1,
+        explanation: "When destructuring [1, 2, 3], a=1, b=2, c=3. Variables assigned in order."
+      },
+      {
+        title: "Skipping elements",
+        code: `const arr = ['red', 'green', 'blue'];
+const [, middle, ] = arr;`,
+        question: "What is the value of `middle`?",
+        options: ["'red'", "'green'", "'blue'", "undefined"],
+        correct: 1,
+        explanation: "Empty commas skip elements. First comma skips 'red', middle gets 'green'."
+      },
+      {
+        title: "Rest operator",
+        code: `const arr = [10, 20, 30, 40, 50];
+const [first, ...rest] = arr;`,
+        question: "What is the value of `rest`?",
+        options: ["[20]", "[20, 30, 40, 50]", "[10, 20, 30, 40, 50]", "[30, 40, 50]"],
+        correct: 1,
+        explanation: "The rest operator (...) collects remaining elements into an array."
+      },
+      {
+        title: "Default values",
+        code: `const arr = [5];
+const [x, y = 99] = arr;`,
+        question: "What is the value of `y`?",
+        options: ["undefined", "5", "99", "0"],
+        correct: 2,
+        explanation: "y=99 is the default value used when the second element doesn't exist."
+      },
+      {
+        title: "Nested destructuring",
+        code: `const arr = [[1, 2], [3, 4]];
+const [[a, b], [c, d]] = arr;`,
+        question: "What is the value of `d`?",
+        options: ["2", "3", "4", "[3, 4]"],
+        correct: 2,
+        explanation: "Nested destructuring mirrors the structure. d gets the second element of the second array."
+      }
+    ];
+
+    let currentRound = 0;
+    let score = 0;
+    let answered = false;
+
+    function renderChallenge() {
+      if (currentRound >= rounds.length) {
+        showEndScreen();
+        return;
+      }
+
+      const round = rounds[currentRound];
+      const container = document.getElementById('challenge-content');
+
+      container.innerHTML = `
+        <div class="challenge-title">${round.title}</div>
+        <div class="code-block">${escapeHtml(round.code)}</div>
+        <div class="question">${round.question}</div>
+        <div class="options" id="options-container"></div>
+        <div class="feedback" id="feedback"></div>
+        <button class="next-button" id="next-btn">Next round →</button>
+      `;
+
+      const optionsContainer = document.getElementById('options-container');
+      round.options.forEach((option, index) => {
+        const btn = document.createElement('button');
+        btn.className = 'option';
+        btn.textContent = option;
+        btn.onclick = () => handleAnswer(index, round);
+        optionsContainer.appendChild(btn);
+      });
+
+      document.getElementById('round').textContent = currentRound + 1;
+      updateScore();
+      answered = false;
+    }
+
+    function handleAnswer(selectedIndex, round) {
+      if (answered) return;
+      answered = true;
+
+      const options = document.querySelectorAll('.option');
+      const feedback = document.getElementById('feedback');
+      const nextBtn = document.getElementById('next-btn');
+      const isCorrect = selectedIndex === round.correct;
+
+      if (isCorrect) {
+        score++;
+        options[selectedIndex].classList.add('correct');
+        feedback.className = 'feedback show correct';
+        feedback.innerHTML = `<div class="feedback-title">✓ Good rep!</div>${round.explanation}`;
+      } else {
+        options[selectedIndex].classList.add('wrong');
+        options[round.correct].classList.add('correct');
+        feedback.className = 'feedback show wrong';
+        feedback.innerHTML = `<div class="feedback-title">Weak rep</div>Correct: <strong>${round.options[round.correct]}</strong>. ${round.explanation}`;
+      }
+
+      options.forEach((opt, idx) => {
+        opt.disabled = true;
+      });
+
+      nextBtn.classList.add('show');
+      updateScore();
+    }
+
+    function updateScore() {
+      const percentage = Math.round((score / rounds.length) * 100);
+      document.getElementById('score').textContent = percentage;
+    }
+
+    function showEndScreen() {
+      const percentage = Math.round((score / rounds.length) * 100);
+      const endScreen = document.getElementById('end-screen');
+      const challengeContent = document.getElementById('challenge-content');
+
+      challengeContent.style.display = 'none';
+
+      let verdictText, verdictClass;
+      if (percentage >= 75) {
+        verdictText = "brainrot eliminated";
+        verdictClass = "excellent";
+      } else if (percentage >= 50) {
+        verdictText = "still recovering";
+        verdictClass = "good";
+      } else {
+        verdictText = "more reps needed";
+        verdictClass = "poor";
+      }
+
+      const summary = `You crushed ${score} out of ${rounds.length} challenges. Array destructuring is about unpacking array elements into named variables — skip elements with commas, capture rest with ..., and use defaults for missing values. You're building muscle memory for one of JS's most powerful syntax patterns.`;
+
+      document.getElementById('final-score').textContent = percentage + '%';
+      document.getElementById('final-score').className = `final-score ${verdictClass}`;
+      document.getElementById('verdict').textContent = verdictText;
+      document.getElementById('verdict').className = `verdict ${verdictClass}`;
+      document.getElementById('summary').textContent = summary;
+
+      endScreen.classList.add('show');
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    document.addEventListener('click', (e) => {
+      if (e.target.id === 'next-btn' || e.target.textContent === 'Run it again →') {
+        if (e.target.textContent === 'Run it again →') {
+          location.reload();
+        } else {
+          currentRound++;
+          renderChallenge();
+        }
+      }
+    });
+
+    renderChallenge();
+  </script>
+</body>
+</html>

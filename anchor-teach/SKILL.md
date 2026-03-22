@@ -138,6 +138,27 @@ derivatives and can build on top of that rather than starting from scratch.
 
 ---
 
+## Step 5: Generate a game to test comprehension
+
+After writing the concept back to the profile, generate a brainrot-game for the concept just
+taught. Don't ask for permission — just do it. The game is the assessment.
+
+Tell the user something like:
+> "Let's see if it stuck. I'm building you a quick game — play it and come back."
+
+Then generate a self-contained HTML5 game using the **brainrot-game** skill. The game should:
+- Focus specifically on the concept just taught (not a generic quiz)
+- Use the same examples and mental models from the teaching session where possible — if you
+  taught closures using a counter function, the game should involve counter functions
+- Be completable in 2–3 minutes
+- Save to the workspace as `brainrot-[concept-slug].html` and open in the browser
+
+This replaces the final comprehension check question. A game produces a much stronger signal of
+real understanding than a written answer — the user has to apply the concept under pressure,
+not just describe it.
+
+---
+
 ## What makes a good teaching session
 
 - The user asks a follow-up question unprompted → they're genuinely curious, not just going

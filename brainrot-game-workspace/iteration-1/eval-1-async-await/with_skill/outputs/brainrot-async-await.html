@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Async/Await Brainrot Game</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      width: 100vw;
+      height: 100vh;
+      background-color: #09090b;
+      background-image:
+        linear-gradient(rgba(255,255,255,.016) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.016) 1px, transparent 1px);
+      background-size: 40px 40px;
+      font-family: system-ui, sans-serif;
+      color: #f2ede3;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .container {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+      position: relative;
+    }
+
+    .header {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      right: 20px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 16px;
+      z-index: 100;
+    }
+
+    .round-info {
+      color: #c8c2b4;
+      font-weight: 500;
+    }
+
+    .score-info {
+      color: #c8c2b4;
+      font-weight: 500;
+    }
+
+    .game-area {
+      background-color: #111113;
+      border: 1px solid rgba(255,255,255,0.11);
+      border-radius: 12px;
+      padding: 40px;
+      max-width: 800px;
+      width: 100%;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+      display: flex;
+      flex-direction: column;
+      gap: 30px;
+    }
+
+    .challenge-title {
+      font-size: 24px;
+      font-weight: 600;
+      color: #f2ede3;
+      margin-bottom: 10px;
+    }
+
+    .challenge-prompt {
+      font-size: 16px;
+      color: #c8c2b4;
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    .code-block {
+      background-color: #1a1a1e;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 8px;
+      padding: 20px;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      color: #f2ede3;
+      line-height: 1.6;
+      overflow-x: auto;
+      margin: 15px 0;
+    }
+
+    .token {
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.2s ease;
+      padding: 4px 8px;
+      border-radius: 4px;
+      display: inline-block;
+      margin: 2px;
+    }
+
+    .token:hover {
+      background-color: rgba(200, 184, 255, 0.15);
+      transform: scale(1.05);
+    }
+
+    .token.clickable {
+      color: #c8b8ff;
+      text-decoration: underline;
+      text-decoration-style: dotted;
+    }
+
+    .options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      margin: 20px 0;
+    }
+
+    .option {
+      background-color: #1a1a1e;
+      border: 2px solid rgba(255,255,255,0.08);
+      border-radius: 8px;
+      padding: 20px;
+      cursor: pointer;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      color: #f2ede3;
+      text-align: center;
+      transition: all 0.2s ease;
+      min-height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1.4;
+    }
+
+    .option:hover {
+      border-color: rgba(255,255,255,0.2);
+      background-color: #26262c;
+      transform: translateY(-2px);
+    }
+
+    .option.selected {
+      border-color: #c8b8ff;
+      background-color: rgba(200, 184, 255, 0.1);
+    }
+
+    .option.correct {
+      border-color: #2ab870;
+      background-color: rgba(42, 184, 112, 0.15);
+      animation: pulse-green 0.6s ease;
+    }
+
+    .option.wrong {
+      border-color: #e83636;
+      background-color: rgba(232, 54, 54, 0.15);
+      animation: shake 0.4s ease;
+    }
+
+    .message {
+      font-size: 16px;
+      font-weight: 500;
+      margin-top: 15px;
+      text-align: center;
+      min-height: 24px;
+      line-height: 1.4;
+    }
+
+    .message.correct {
+      color: #2ab870;
+    }
+
+    .message.wrong {
+      color: #e83636;
+    }
+
+    .explanation {
+      font-size: 14px;
+      color: #c8c2b4;
+      margin-top: 10px;
+      line-height: 1.5;
+      font-style: italic;
+    }
+
+    .buttons {
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+      margin-top: 20px;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      font-size: 16px;
+      font-weight: 600;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .btn-primary {
+      background-color: #c8b8ff;
+      color: #09090b;
+    }
+
+    .btn-primary:hover {
+      background-color: #d4c4ff;
+      transform: translateY(-2px);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+
+    .btn-secondary {
+      background-color: #26262c;
+      color: #f2ede3;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .btn-secondary:hover {
+      background-color: #3a3a42;
+    }
+
+    .end-screen {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      align-items: center;
+    }
+
+    .score-percentage {
+      font-size: 72px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .score-percentage.excellent {
+      color: #2ab870;
+    }
+
+    .score-percentage.good {
+      color: #f0a030;
+    }
+
+    .score-percentage.poor {
+      color: #e83636;
+    }
+
+    .verdict {
+      font-size: 28px;
+      font-weight: 600;
+      margin: 10px 0;
+    }
+
+    .summary {
+      font-size: 16px;
+      color: #c8c2b4;
+      line-height: 1.6;
+      max-width: 600px;
+    }
+
+    @keyframes pulse-green {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-8px); }
+      75% { transform: translateX(8px); }
+    }
+
+    @keyframes slide-in {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .game-area {
+      animation: slide-in 0.4s ease;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="round-info">Round <span id="roundNum">1</span> of 5</div>
+      <div class="score-info">Score: <span id="scoreNum">0</span></div>
+    </div>
+
+    <div class="game-area" id="gameArea">
+      <div id="challengeContent"></div>
+      <div id="message" class="message"></div>
+      <div class="buttons">
+        <button class="btn btn-primary" id="submitBtn">Check Answer</button>
+        <button class="btn btn-secondary" id="nextBtn" class="hidden">Next Round →</button>
+      </div>
+    </div>
+
+    <div class="game-area hidden" id="endScreen"></div>
+  </div>
+
+  <script>
+    const CHALLENGES = [
+      {
+        type: 'execution-order',
+        title: 'What prints first?',
+        prompt: 'Click the labels in the order they execute:',
+        code: `
+console.log('1: Start');
+
+async function demo() {
+  console.log('2: Inside async');
+  await Promise.resolve();
+  console.log('4: After await');
+}
+
+demo();
+console.log('3: End');
+        `,
+        order: ['1: Start', '2: Inside async', '3: End', '4: After await'],
+        explanation: 'Async code runs synchronously until the first await, then callbacks go to the microtask queue.',
+        selected: [],
+      },
+      {
+        type: 'execution-order',
+        title: 'Promise and await order',
+        prompt: 'Click the blocks in execution order:',
+        code: `
+console.log('A');
+
+Promise.resolve()
+  .then(() => console.log('B'));
+
+(async () => {
+  await Promise.resolve();
+  console.log('C');
+})();
+
+console.log('D');
+        `,
+        order: ['A', 'D', 'B', 'C'],
+        explanation: 'Both .then() and await callbacks go to microtasks, but sync code runs first.',
+        selected: [],
+      },
+      {
+        type: 'execution-order',
+        title: 'Nested promises and timers',
+        prompt: 'What\'s the execution order?',
+        code: `
+console.log('Start');
+
+setTimeout(() => console.log('Macro'), 0);
+
+Promise.resolve()
+  .then(() => console.log('Micro'));
+
+console.log('End');
+        `,
+        order: ['Start', 'End', 'Micro', 'Macro'],
+        explanation: 'Microtasks (promises) run before macrotasks (setTimeout), even if setTimeout is 0ms.',
+        selected: [],
+      },
+      {
+        type: 'execution-order',
+        title: 'Async function with multiple awaits',
+        prompt: 'Click in execution order:',
+        code: `
+async function chain() {
+  console.log('A');
+  await Promise.resolve();
+  console.log('B');
+  await Promise.resolve();
+  console.log('C');
+}
+
+chain();
+console.log('D');
+        `,
+        order: ['A', 'D', 'B', 'C'],
+        explanation: 'Each await pauses, returns control, and resumes later—but all sync code runs to completion first.',
+        selected: [],
+      },
+      {
+        type: 'execution-order',
+        title: 'Complex: settle and callback order',
+        prompt: 'Final rep—what\'s the order?',
+        code: `
+Promise.resolve('first')
+  .then(val => {
+    console.log('1: ' + val);
+    return 'second';
+  })
+  .then(val => console.log('2: ' + val));
+
+(async () => {
+  console.log('3: async start');
+  await new Promise(res => res('third'));
+  console.log('4: async end');
+})();
+
+console.log('5: sync');
+        `,
+        order: ['5: sync', '3: async start', '1: first', '2: second', '4: async end'],
+        explanation: 'All sync runs first, then microtasks drain in FIFO order—promises and awaits are both microtasks.',
+        selected: [],
+      },
+    ];
+
+    let currentRound = 0;
+    let score = 0;
+
+    function renderChallenge() {
+      const challenge = CHALLENGES[currentRound];
+      const content = document.getElementById('challengeContent');
+
+      let html = `<div class="challenge-title">${challenge.title}</div>`;
+      html += `<div class="challenge-prompt">${challenge.prompt}</div>`;
+      html += `<div class="code-block">${escapeHtml(challenge.code.trim())}</div>`;
+      html += `<div style="display: flex; flex-direction: column; gap: 12px;">`;
+
+      challenge.order.forEach((label, idx) => {
+        const isSelected = challenge.selected.includes(label);
+        const classStr = isSelected ? 'option selected' : 'option';
+        html += `<div class="${classStr}" data-label="${label}" data-index="${idx}">${label}</div>`;
+      });
+
+      html += `</div>`;
+
+      content.innerHTML = html;
+
+      // Attach click handlers
+      document.querySelectorAll('[data-label]').forEach(el => {
+        el.addEventListener('click', () => toggleOption(el.dataset.label));
+      });
+
+      document.getElementById('submitBtn').style.display = 'block';
+      document.getElementById('nextBtn').style.display = 'none';
+      document.getElementById('message').textContent = '';
+      document.getElementById('message').className = 'message';
+    }
+
+    function toggleOption(label) {
+      const challenge = CHALLENGES[currentRound];
+      const idx = challenge.selected.indexOf(label);
+      if (idx > -1) {
+        challenge.selected.splice(idx, 1);
+      } else {
+        challenge.selected.push(label);
+      }
+      renderChallenge();
+    }
+
+    function checkAnswer() {
+      const challenge = CHALLENGES[currentRound];
+      const correct = JSON.stringify(challenge.selected) === JSON.stringify(challenge.order);
+
+      const messageEl = document.getElementById('message');
+      const submitBtn = document.getElementById('submitBtn');
+      const nextBtn = document.getElementById('nextBtn');
+
+      if (correct) {
+        score += 1;
+        messageEl.className = 'message correct';
+        messageEl.innerHTML = `<strong>Good rep!</strong><div class="explanation">${challenge.explanation}</div>`;
+        document.getElementById('scoreNum').textContent = score;
+
+        // Highlight correct answers
+        document.querySelectorAll('[data-label]').forEach(el => {
+          el.classList.add('correct');
+        });
+
+        submitBtn.style.display = 'none';
+        nextBtn.style.display = 'block';
+      } else {
+        messageEl.className = 'message wrong';
+        messageEl.innerHTML = `<strong>Weak rep.</strong> <div class="explanation">Order: ${challenge.order.join(' → ')}</div><div class="explanation" style="margin-top: 8px;">${challenge.explanation}</div>`;
+
+        // Flash wrong
+        document.querySelectorAll('[data-label]').forEach(el => {
+          if (!challenge.selected.includes(el.dataset.label)) {
+            el.classList.add('wrong');
+          }
+        });
+      }
+    }
+
+    function nextRound() {
+      currentRound++;
+      if (currentRound >= CHALLENGES.length) {
+        showEndScreen();
+      } else {
+        CHALLENGES[currentRound].selected = [];
+        document.getElementById('roundNum').textContent = currentRound + 1;
+        renderChallenge();
+      }
+    }
+
+    function showEndScreen() {
+      const gameArea = document.getElementById('gameArea');
+      const endScreen = document.getElementById('endScreen');
+
+      gameArea.classList.add('hidden');
+
+      const percentage = Math.round((score / CHALLENGES.length) * 100);
+      let percentClass = 'poor';
+      let verdict = 'Still recovering';
+      if (percentage >= 75) {
+        percentClass = 'excellent';
+        verdict = 'Brainrot eliminated';
+      } else if (percentage >= 50) {
+        percentClass = 'good';
+        verdict = 'Getting locked in';
+      }
+
+      let html = `<div class="end-screen">`;
+      html += `<div class="score-percentage ${percentClass}">${percentage}%</div>`;
+      html += `<div class="verdict">${verdict}</div>`;
+      html += `<div class="summary">You've practiced execution order in async/await scenarios. You understand that synchronous code runs to completion first, then microtasks (promises and await) drain before macrotasks. Keep running reps to own this.</div>`;
+      html += `<button class="btn btn-primary" onclick="location.reload()">Run it again →</button>`;
+      html += `</div>`;
+
+      endScreen.innerHTML = html;
+      endScreen.classList.remove('hidden');
+    }
+
+    function escapeHtml(text) {
+      const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+      };
+      return text.replace(/[&<>"']/g, m => map[m]);
+    }
+
+    // Event listeners
+    document.getElementById('submitBtn').addEventListener('click', checkAnswer);
+    document.getElementById('nextBtn').addEventListener('click', nextRound);
+
+    // Initialize
+    renderChallenge();
+  </script>
+</body>
+</html>

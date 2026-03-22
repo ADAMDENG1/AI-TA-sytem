@@ -1,0 +1,6 @@
+{
+  "eval_id": 2,
+  "eval_name": "destructuring-game",
+  "prompt": "I keep messing up array destructuring in JS. Can you make a game that drills me on it?",
+  "assertions": []
+}

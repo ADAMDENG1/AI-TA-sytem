@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Closures Brainrot Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 100vw;
+            height: 100vh;
+            background-color: #09090b;
+            background-image:
+                linear-gradient(rgba(255,255,255,.016) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,.016) 1px, transparent 1px);
+            background-size: 40px 40px;
+            color: #f2ede3;
+            font-family: system-ui, sans-serif;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        header {
+            padding: 24px;
+            border-bottom: 1px solid rgba(255,255,255,0.11);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-left {
+            font-size: 18px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .header-right {
+            display: flex;
+            gap: 32px;
+            font-size: 16px;
+        }
+
+        .main {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            overflow-y: auto;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+        }
+
+        .round-label {
+            font-size: 13px;
+            letter-spacing: 1px;
+            color: #888;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+        }
+
+        .challenge-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 24px;
+            color: #f2ede3;
+        }
+
+        .code-block {
+            background-color: #1a1a1e;
+            border: 1px solid rgba(255,255,255,0.11);
+            border-radius: 8px;
+            padding: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 24px;
+            overflow-x: auto;
+        }
+
+        .code-line {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .line-num {
+            color: #888;
+            min-width: 30px;
+            text-align: right;
+            flex-shrink: 0;
+        }
+
+        .token {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            padding: 2px 6px;
+            border-radius: 3px;
+            transition: all 0.2s;
+            font-weight: 600;
+            user-select: none;
+        }
+
+        .token.clickable {
+            background-color: rgba(200, 184, 255, 0.15);
+            color: #c8b8ff;
+            border: 1px solid rgba(200, 184, 255, 0.3);
+        }
+
+        .token.clickable:hover {
+            background-color: rgba(200, 184, 255, 0.3);
+            border-color: rgba(200, 184, 255, 0.6);
+            box-shadow: 0 0 8px rgba(200, 184, 255, 0.2);
+        }
+
+        .token.selected {
+            background-color: rgba(200, 184, 255, 0.6);
+            border-color: rgba(200, 184, 255, 1);
+            box-shadow: 0 0 12px rgba(200, 184, 255, 0.4);
+        }
+
+        .reference {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+
+        .reference.highlight {
+            background-color: rgba(240, 160, 48, 0.2);
+            border: 1px solid rgba(240, 160, 48, 0.4);
+            color: #f0a030;
+        }
+
+        .question-text {
+            font-size: 16px;
+            margin-bottom: 20px;
+            color: #c8c2b4;
+        }
+
+        .option-bank {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .option {
+            padding: 12px 16px;
+            background-color: #26262c;
+            border: 2px solid rgba(255,255,255,0.11);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+            font-size: 14px;
+            font-weight: 500;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .option:hover {
+            background-color: #2e2e35;
+            border-color: rgba(255,255,255,0.2);
+        }
+
+        .option.selected {
+            background-color: #c8b8ff;
+            color: #09090b;
+            border-color: #c8b8ff;
+            font-weight: 600;
+        }
+
+        .button-row {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-primary {
+            background-color: #2ab870;
+            color: #09090b;
+        }
+
+        .btn-primary:hover {
+            background-color: #2ab870;
+            box-shadow: 0 0 16px rgba(42, 184, 112, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .feedback {
+            margin-top: 20px;
+            padding: 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            display: none;
+            text-align: center;
+        }
+
+        .feedback.show {
+            display: block;
+            animation: fadeInScale 0.3s ease-out;
+        }
+
+        .feedback.correct {
+            background-color: rgba(42, 184, 112, 0.15);
+            border: 1px solid rgba(42, 184, 112, 0.3);
+            color: #2ab870;
+        }
+
+        .feedback.incorrect {
+            background-color: rgba(232, 54, 54, 0.15);
+            border: 1px solid rgba(232, 54, 54, 0.3);
+            color: #e83636;
+        }
+
+        .insight {
+            font-size: 12px;
+            color: #c8c2b4;
+            margin-top: 8px;
+        }
+
+        .end-screen {
+            display: none;
+            text-align: center;
+        }
+
+        .end-screen.show {
+            display: block;
+        }
+
+        .score-circle {
+            width: 200px;
+            height: 200px;
+            margin: 0 auto 24px;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 64px;
+            font-weight: 700;
+            border: 3px solid;
+        }
+
+        .score-circle.excellent {
+            background-color: rgba(42, 184, 112, 0.15);
+            border-color: #2ab870;
+            color: #2ab870;
+        }
+
+        .score-circle.good {
+            background-color: rgba(240, 160, 48, 0.15);
+            border-color: #f0a030;
+            color: #f0a030;
+        }
+
+        .score-circle.weak {
+            background-color: rgba(232, 54, 54, 0.15);
+            border-color: #e83636;
+            color: #e83636;
+        }
+
+        .verdict {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .summary {
+            font-size: 14px;
+            color: #c8c2b4;
+            line-height: 1.6;
+            margin-bottom: 24px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .btn-restart {
+            background-color: #c8b8ff;
+            color: #09090b;
+            padding: 14px 28px;
+            font-size: 15px;
+        }
+
+        .btn-restart:hover {
+            background-color: #d9ceff;
+            box-shadow: 0 0 16px rgba(200, 184, 255, 0.3);
+        }
+
+        @keyframes fadeInScale {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            75% { transform: translateX(8px); }
+        }
+
+        .shake {
+            animation: shake 0.4s;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        .pulse {
+            animation: pulse 0.3s;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-left">CLOSURES</div>
+        <div class="header-right">
+            <span>Round <span id="round">1</span> of 5</span>
+            <span>Score: <span id="score">0</span></span>
+        </div>
+    </header>
+
+    <div class="main">
+        <div class="container">
+            <div id="gameContent"></div>
+            <div id="endScreen" class="end-screen"></div>
+        </div>
+    </div>
+
+    <script>
+        const rounds = [
+            {
+                title: "What does this closure capture?",
+                code: `function outer(x) {
+  return function inner() {
+    return x + 1;
+  };
+}
+
+const fn = outer(5);
+console.log(fn());`,
+                question: "What value does the variable 'x' have inside the inner function?",
+                references: [],
+                answer: "5",
+                options: ["undefined", "5", "NaN", "1"],
+                insight: "Closures capture variables from their lexical scope. 'x' stays 5."
+            },
+            {
+                title: "Which variable does this reference access?",
+                code: `let outer = 10;
+
+function makeFunc() {
+  let inner = 20;
+  return function() {
+    console.log(inner);
+  };
+}
+
+const fn = makeFunc();
+fn();`,
+                question: "What gets logged when fn() is called?",
+                references: [],
+                answer: "20",
+                options: ["10", "20", "undefined", "NaN"],
+                insight: "The function closes over 'inner' from its creation scope, not outer scope."
+            },
+            {
+                title: "Track the closure chain",
+                code: `function level1(a) {
+  return function level2(b) {
+    return function level3(c) {
+      return a + b + c;
+    };
+  };
+}
+
+const fn = level1(1)(2)(3);
+console.log(fn);`,
+                question: "What is the result of level1(1)(2)(3)?",
+                references: [],
+                answer: "6",
+                options: ["3", "6", "undefined", "1+2+3"],
+                insight: "Nested closures capture each level's parameters. Each level remembers its args."
+            },
+            {
+                title: "Closure with mutation",
+                code: `function counter() {
+  let count = 0;
+  return function() {
+    count++;
+    return count;
+  };
+}
+
+const c = counter();
+c();
+c();
+console.log(c());`,
+                question: "What does c() return on the third call?",
+                references: [],
+                answer: "3",
+                options: ["1", "2", "3", "0"],
+                insight: "Closures maintain state. Each call increments the captured 'count' variable."
+            },
+            {
+                title: "Loop closure trap",
+                code: `const funcs = [];
+for (var i = 0; i < 3; i++) {
+  funcs.push(function() {
+    return i;
+  });
+}
+
+console.log(funcs[0]());
+console.log(funcs[1]());
+console.log(funcs[2]());`,
+                question: "What do the three calls print in sequence?",
+                references: [],
+                answer: "3, 3, 3",
+                options: ["0, 1, 2", "3, 3, 3", "undefined, undefined, undefined", "1, 1, 1"],
+                insight: "With 'var', all closures share the same 'i'. Use 'let' per iteration to fix this."
+            }
+        ];
+
+        let currentRound = 0;
+        let score = 0;
+
+        function renderRound() {
+            const round = rounds[currentRound];
+            const gameContent = document.getElementById('gameContent');
+
+            gameContent.innerHTML = `
+                <div class="round-label">Rep ${currentRound + 1}</div>
+                <h1 class="challenge-title">${round.title}</h1>
+
+                <div class="code-block">
+                    <pre>${escapeHtml(round.code)}</pre>
+                </div>
+
+                <p class="question-text">${round.question}</p>
+
+                <div class="option-bank" id="optionBank">
+                    ${round.options.map((opt, idx) => `
+                        <div class="option" data-index="${idx}" onclick="selectOption(${idx})">
+                            ${escapeHtml(opt)}
+                        </div>
+                    `).join('')}
+                </div>
+
+                <div class="button-row">
+                    <button class="btn btn-primary" onclick="submitAnswer()">Lock in</button>
+                </div>
+
+                <div class="feedback" id="feedback"></div>
+            `;
+        }
+
+        function selectOption(idx) {
+            document.querySelectorAll('.option').forEach(el => el.classList.remove('selected'));
+            document.querySelectorAll('.option')[idx].classList.add('selected');
+            window.selectedIdx = idx;
+        }
+
+        function submitAnswer() {
+            if (window.selectedIdx === undefined) {
+                alert("Pick an option!");
+                return;
+            }
+
+            const round = rounds[currentRound];
+            const selected = round.options[window.selectedIdx];
+            const feedback = document.getElementById('feedback');
+
+            if (selected === round.answer) {
+                feedback.textContent = `Good rep! ${round.insight}`;
+                feedback.className = 'feedback show correct';
+                score += 20;
+                document.getElementById('score').textContent = score;
+
+                setTimeout(() => {
+                    if (currentRound < rounds.length - 1) {
+                        currentRound++;
+                        document.getElementById('round').textContent = currentRound + 1;
+                        window.selectedIdx = undefined;
+                        renderRound();
+                    } else {
+                        showEndScreen();
+                    }
+                }, 1500);
+            } else {
+                document.getElementById('gameContent').classList.add('shake');
+                setTimeout(() => {
+                    document.getElementById('gameContent').classList.remove('shake');
+                }, 400);
+
+                feedback.innerHTML = `
+                    <strong>Weak rep.</strong> The answer is <strong>${escapeHtml(round.answer)}</strong>.
+                    <div class="insight">${round.insight}</div>
+                `;
+                feedback.className = 'feedback show incorrect';
+
+                setTimeout(() => {
+                    window.selectedIdx = undefined;
+                    renderRound();
+                }, 2000);
+            }
+        }
+
+        function showEndScreen() {
+            document.getElementById('gameContent').style.display = 'none';
+            const endScreen = document.getElementById('endScreen');
+            const percentage = Math.round((score / 100) * 100);
+            const isExcellent = percentage >= 75;
+            const isGood = percentage >= 50;
+
+            let verdict, summary;
+            if (isExcellent) {
+                verdict = "brainrot eliminated.";
+                summary = `You locked in. Closures clicked. You now understand how functions capture their lexical environment, maintain state, and share scope chains. The classic loop trap won't catch you off guard.`;
+            } else if (isGood) {
+                verdict = "still recovering.";
+                summary = `Solid foundational understanding, but run one more round. Closures are about scope capture and reference. One more workout and you'll own this.`;
+            } else {
+                verdict = "more reps needed.";
+                summary = `Closures are slippery at first. Don't sweat it. Run the game again — focus on the insight after each rep. Lexical scope + persistent variables = closure. You'll get there.`;
+            }
+
+            const circleClass = isExcellent ? 'excellent' : isGood ? 'good' : 'weak';
+            endScreen.innerHTML = `
+                <div class="score-circle ${circleClass}">${percentage}%</div>
+                <div class="verdict">${verdict}</div>
+                <div class="summary">${summary}</div>
+                <button class="btn btn-restart" onclick="location.reload()">Run it again →</button>
+            `;
+            endScreen.classList.add('show');
+        }
+
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, m => map[m]);
+        }
+
+        renderRound();
+    </script>
+</body>
+</html>

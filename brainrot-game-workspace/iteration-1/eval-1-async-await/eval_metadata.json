@@ -1,0 +1,6 @@
+{
+  "eval_id": 1,
+  "eval_name": "async-await-game",
+  "prompt": "make a brainrot game about the JavaScript event loop and async/await",
+  "assertions": []
+}

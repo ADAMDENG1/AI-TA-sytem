@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Brainrot: Taylor Series</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    width: 100vw; height: 100vh; overflow: hidden;
+    background-color: #09090b;
+    background-image:
+      linear-gradient(rgba(255,255,255,.016) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.016) 1px, transparent 1px);
+    background-size: 40px 40px;
+    font-family: system-ui, -apple-system, sans-serif;
+    color: #f2ede3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* ── Header ── */
+  .header {
+    position: fixed; top: 0; left: 0; right: 0;
+    padding: 16px 28px;
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    background: rgba(9,9,11,0.85);
+    backdrop-filter: blur(8px);
+    z-index: 10;
+  }
+  .header-title {
+    font-size: 13px; font-weight: 700; letter-spacing: 0.18em;
+    color: #888; text-transform: uppercase;
+  }
+  .header-meta {
+    display: flex; gap: 24px; align-items: center;
+  }
+  .round-counter {
+    font-size: 13px; color: #888; letter-spacing: 0.05em;
+  }
+  .score-counter {
+    font-size: 13px; font-weight: 700; color: #f2ede3;
+    letter-spacing: 0.05em;
+  }
+
+  /* ── Main card ── */
+  .card {
+    width: min(640px, 92vw);
+    background: #111113;
+    border: 1px solid rgba(255,255,255,0.11);
+    border-radius: 16px;
+    padding: 32px 36px;
+    display: flex; flex-direction: column; gap: 20px;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+  }
+  .card.fade-out { opacity: 0; transform: translateY(12px); }
+
+  .round-badge {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.2em;
+    text-transform: uppercase; color: #c8b8ff;
+  }
+
+  .scenario {
+    font-size: 17px; line-height: 1.65; color: #f2ede3;
+  }
+
+  .formula-box {
+    background: #1a1a1e;
+    border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 10px;
+    padding: 12px 18px;
+    font-family: 'Courier New', monospace;
+    font-size: 15px; color: #c8b8ff;
+    letter-spacing: 0.02em;
+  }
+  .formula-label {
+    font-size: 11px; color: #888; margin-bottom: 6px;
+    text-transform: uppercase; letter-spacing: 0.12em;
+  }
+
+  .hint-text {
+    font-size: 13px; color: #888; font-family: 'Courier New', monospace;
+  }
+
+  /* ── Answer grid ── */
+  .answers {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+    margin-top: 4px;
+  }
+  .answer-btn {
+    background: #1a1a1e;
+    border: 1px solid rgba(255,255,255,0.11);
+    border-radius: 10px;
+    padding: 14px 18px;
+    font-size: 15px; font-weight: 500; color: #f2ede3;
+    cursor: pointer; text-align: left;
+    transition: background 0.15s, border-color 0.15s, transform 0.1s;
+    min-height: 54px;
+    display: flex; align-items: center;
+  }
+  .answer-btn:hover:not(:disabled) {
+    background: #26262c;
+    border-color: rgba(255,255,255,0.22);
+  }
+  .answer-btn:disabled { cursor: default; }
+  .answer-btn.correct {
+    background: rgba(42,184,112,0.15);
+    border-color: #2ab870;
+    color: #2ab870;
+  }
+  .answer-btn.wrong {
+    background: rgba(232,54,54,0.12);
+    border-color: #e83636;
+    color: #e83636;
+  }
+  .answer-btn.dim {
+    opacity: 0.35;
+  }
+
+  /* shake animation */
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    20% { transform: translateX(-6px); }
+    40% { transform: translateX(6px); }
+    60% { transform: translateX(-4px); }
+    80% { transform: translateX(4px); }
+  }
+  .shake { animation: shake 0.35s ease; }
+
+  @keyframes pop-in {
+    0% { transform: scale(0.94); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  .pop-in { animation: pop-in 0.28s ease forwards; }
+
+  /* ── Feedback ── */
+  .feedback {
+    border-radius: 10px;
+    padding: 14px 18px;
+    font-size: 14px; line-height: 1.55;
+    display: none;
+  }
+  .feedback.correct {
+    background: rgba(42,184,112,0.1);
+    border: 1px solid rgba(42,184,112,0.3);
+    color: #2ab870;
+  }
+  .feedback.wrong {
+    background: rgba(232,54,54,0.08);
+    border: 1px solid rgba(232,54,54,0.3);
+    color: #f2ede3;
+  }
+  .feedback.visible { display: block; }
+  .feedback-label {
+    font-weight: 700; font-size: 12px; letter-spacing: 0.12em;
+    text-transform: uppercase; margin-bottom: 6px;
+  }
+  .feedback.correct .feedback-label { color: #2ab870; }
+  .feedback.wrong .feedback-label { color: #e83636; }
+
+  /* ── Next button ── */
+  .next-btn {
+    display: none;
+    background: #f2ede3;
+    color: #09090b;
+    border: none; border-radius: 10px;
+    padding: 14px 24px;
+    font-size: 15px; font-weight: 700;
+    cursor: pointer; width: 100%;
+    transition: opacity 0.15s, transform 0.1s;
+    letter-spacing: 0.03em;
+  }
+  .next-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+  .next-btn.visible { display: block; }
+
+  /* ── End Screen ── */
+  .end-screen {
+    display: none;
+    width: min(540px, 92vw);
+    background: #111113;
+    border: 1px solid rgba(255,255,255,0.11);
+    border-radius: 16px;
+    padding: 40px 36px;
+    flex-direction: column; gap: 20px;
+    align-items: center; text-align: center;
+  }
+  .end-screen.visible { display: flex; }
+
+  .end-title {
+    font-size: 12px; font-weight: 700; letter-spacing: 0.22em;
+    text-transform: uppercase; color: #888;
+  }
+  .end-score {
+    font-size: 68px; font-weight: 800; line-height: 1;
+    letter-spacing: -0.02em;
+  }
+  .end-score.green { color: #2ab870; }
+  .end-score.amber { color: #f0a030; }
+  .end-score.red { color: #e83636; }
+
+  .verdict {
+    font-size: 18px; font-weight: 600; color: #f2ede3;
+    letter-spacing: 0.03em;
+  }
+
+  .end-summary {
+    font-size: 14px; line-height: 1.7; color: #c8c2b4;
+    max-width: 400px;
+  }
+
+  .replay-btn {
+    background: #f2ede3; color: #09090b;
+    border: none; border-radius: 10px;
+    padding: 14px 32px;
+    font-size: 15px; font-weight: 700;
+    cursor: pointer; margin-top: 8px;
+    transition: opacity 0.15s;
+    letter-spacing: 0.03em;
+  }
+  .replay-btn:hover { opacity: 0.85; }
+
+  .divider {
+    width: 100%; height: 1px;
+    background: rgba(255,255,255,0.08);
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <span class="header-title">Latency Prophet — Taylor Series</span>
+  <div class="header-meta">
+    <span class="round-counter" id="roundLabel">Round 1 of 5</span>
+    <span class="score-counter" id="scoreLabel">Score: 0</span>
+  </div>
+</div>
+
+<!-- Game Card -->
+<div class="card" id="gameCard">
+  <div class="round-badge" id="roundBadge">Round 1 · Zeroth Order</div>
+  <div class="scenario" id="scenarioText"></div>
+  <div id="formulaSection">
+    <div class="formula-label">Taylor approximation in use</div>
+    <div class="formula-box" id="formulaText"></div>
+  </div>
+  <div class="hint-text" id="hintText"></div>
+  <div class="answers" id="answersGrid"></div>
+  <div class="feedback" id="feedbackBox">
+    <div class="feedback-label" id="feedbackLabel"></div>
+    <div id="feedbackInsight"></div>
+  </div>
+  <button class="next-btn" id="nextBtn" onclick="nextRound()">Next Rep →</button>
+</div>
+
+<!-- End Screen -->
+<div class="end-screen" id="endScreen">
+  <div class="end-title">Training Complete</div>
+  <div class="end-score" id="endScore">0%</div>
+  <div class="verdict" id="endVerdict"></div>
+  <div class="divider"></div>
+  <div class="end-summary" id="endSummary"></div>
+  <button class="replay-btn" onclick="location.reload()">Run it again →</button>
+</div>
+
+<script>
+const rounds = [
+  {
+    badge: "Round 1 · Zeroth Order",
+    scenario: "Your monitoring dashboard goes dark at t = 0. Last known reading: latency = 50ms. You have no slope data — nothing about how fast it was changing. What's your best prediction for latency at t = 1 second?",
+    formula: "f(a)",
+    hint: null,
+    answers: ["0ms", "50ms", "100ms", "25ms"],
+    correct: 1,
+    insight: "Without any slope info, the best you can do is assume it stays the same: 50ms. That's the zeroth-order Taylor term — just f(a). It's your baseline when you know nothing else."
+  },
+  {
+    badge: "Round 2 · First Order",
+    scenario: "At t = 0: latency = 50ms, and it's climbing at +20ms per second. Dashboard goes dark. Best prediction for latency at t = 2 seconds?",
+    formula: "f(a) + f′(a) · t",
+    hint: "Hint: 50 + 20 × 2 = ?",
+    answers: ["50ms", "70ms", "90ms", "110ms"],
+    correct: 2,
+    insight: "50 + 20×2 = 90ms. Adding the slope term f′(a)·t tells you which direction and how fast latency was moving. First-order Taylor — much better than just guessing 50ms."
+  },
+  {
+    badge: "Round 3 · Second Order",
+    scenario: "At t = 0: latency = 40ms, slope = +10ms/s, and it's accelerating at +6ms/s² (the climb is itself getting faster). Best prediction for t = 2 seconds?",
+    formula: "f(a) + f′(a)·t + f″(a)/2 · t²",
+    hint: "Hint: 40 + 10×2 + (6÷2)×4 = ?",
+    answers: ["60ms", "72ms", "80ms", "92ms"],
+    correct: 1,
+    insight: "40 + 20 + 12 = 72ms. The curvature term f″(a)/2·t² captures the bending of the curve — not just how fast it's rising, but whether that rise is itself speeding up. That's second-order Taylor."
+  },
+  {
+    badge: "Round 4 · Concept Check",
+    scenario: "Your dashboard has been dark for 10 seconds. Engineer A predicted latency using only the last known value. Engineer B predicted using value + slope + curvature. Whose prediction is more likely to be accurate?",
+    formula: "More terms → better approximation near the known point",
+    hint: null,
+    answers: [
+      "Engineer A (value only)",
+      "Engineer B (value + slope + curvature)",
+      "Both are equally good",
+      "Neither — it's random"
+    ],
+    correct: 1,
+    insight: "Engineer B's prediction uses more information about how the function was behaving at t=0. Each additional term captures a finer detail — direction, curvature — making the approximation more accurate, especially as t grows."
+  },
+  {
+    badge: "Round 5 · The Big Picture",
+    scenario: "A Taylor series builds an approximation by stacking up terms — value, slope, curvature, and beyond. Each new term uses a higher-order _______ at the starting point.",
+    formula: "f(a) + f′(a)·t + f″(a)/2·t² + f‴(a)/6·t³ + ···",
+    hint: null,
+    answers: ["Average", "Derivative", "Integral", "Random sample"],
+    correct: 1,
+    insight: "Each term uses the next derivative: f(a), f′(a), f″(a), f‴(a)... The pattern is: to approximate a function from a single point, stack up everything you can know about its behavior there — how much, how fast, how curved, how fast the curve is curving..."
+  }
+];
+
+let currentRound = 0;
+let score = 0;
+let answered = false;
+
+function renderRound(index) {
+  const r = rounds[index];
+  answered = false;
+
+  document.getElementById('roundLabel').textContent = `Round ${index + 1} of ${rounds.length}`;
+  document.getElementById('scoreLabel').textContent = `Score: ${score}`;
+  document.getElementById('roundBadge').textContent = r.badge;
+  document.getElementById('scenarioText').textContent = r.scenario;
+  document.getElementById('formulaText').textContent = r.formula;
+
+  const hintEl = document.getElementById('hintText');
+  hintEl.textContent = r.hint || '';
+
+  const grid = document.getElementById('answersGrid');
+  grid.innerHTML = '';
+  r.answers.forEach((ans, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'answer-btn';
+    btn.textContent = ans;
+    btn.onclick = () => handleAnswer(i);
+    grid.appendChild(btn);
+  });
+
+  const fb = document.getElementById('feedbackBox');
+  fb.className = 'feedback';
+  fb.classList.remove('visible');
+
+  const nextBtn = document.getElementById('nextBtn');
+  nextBtn.className = 'next-btn';
+  nextBtn.textContent = index === rounds.length - 1 ? 'See Results →' : 'Next Rep →';
+
+  const card = document.getElementById('gameCard');
+  card.classList.remove('fade-out');
+  card.classList.add('pop-in');
+  setTimeout(() => card.classList.remove('pop-in'), 300);
+}
+
+function handleAnswer(selectedIndex) {
+  if (answered) return;
+  answered = true;
+
+  const r = rounds[currentRound];
+  const btns = document.querySelectorAll('.answer-btn');
+  const isCorrect = selectedIndex === r.correct;
+
+  if (isCorrect) score++;
+  document.getElementById('scoreLabel').textContent = `Score: ${score}`;
+
+  btns.forEach((btn, i) => {
+    btn.disabled = true;
+    if (i === r.correct) {
+      btn.classList.add('correct');
+    } else if (i === selectedIndex && !isCorrect) {
+      btn.classList.add('wrong');
+      btn.classList.add('shake');
+    } else {
+      btn.classList.add('dim');
+    }
+  });
+
+  const fb = document.getElementById('feedbackBox');
+  const label = document.getElementById('feedbackLabel');
+  const insight = document.getElementById('feedbackInsight');
+
+  if (isCorrect) {
+    fb.className = 'feedback correct visible';
+    label.textContent = '✓ Good rep';
+  } else {
+    fb.className = 'feedback wrong visible';
+    label.textContent = '✗ Weak rep — correct answer: ' + r.answers[r.correct];
+  }
+  insight.textContent = r.insight;
+
+  document.getElementById('nextBtn').classList.add('visible');
+}
+
+function nextRound() {
+  const card = document.getElementById('gameCard');
+  card.classList.add('fade-out');
+
+  setTimeout(() => {
+    currentRound++;
+    if (currentRound >= rounds.length) {
+      showEndScreen();
+    } else {
+      renderRound(currentRound);
+    }
+  }, 250);
+}
+
+function showEndScreen() {
+  document.getElementById('gameCard').style.display = 'none';
+  const end = document.getElementById('endScreen');
+  end.classList.add('visible');
+
+  const pct = Math.round((score / rounds.length) * 100);
+  const scoreEl = document.getElementById('endScore');
+  scoreEl.textContent = pct + '%';
+
+  if (pct >= 75) {
+    scoreEl.className = 'end-score green';
+    document.getElementById('endVerdict').textContent = 'Brainrot eliminated.';
+  } else if (pct >= 50) {
+    scoreEl.className = 'end-score amber';
+    document.getElementById('endVerdict').textContent = 'Still recovering.';
+  } else {
+    scoreEl.className = 'end-score red';
+    document.getElementById('endVerdict').textContent = 'More reps needed.';
+  }
+
+  document.getElementById('endSummary').innerHTML =
+    `You practiced the core idea of Taylor series: approximating a function from a single point by stacking up its derivatives there — value, slope, curvature, and beyond. ` +
+    `Each new term captures a finer detail of how the function behaves, making the approximation more accurate near that point. ` +
+    `The more terms you include, the closer you get to the actual function.`;
+}
+
+// Init
+renderRound(0);
+</script>
+</body>
+</html>

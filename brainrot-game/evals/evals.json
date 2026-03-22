@@ -1,0 +1,56 @@
+{
+  "skill_name": "brainrot-game",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "brainrot me on closures",
+      "expected_output": "A self-contained HTML5 game that teaches JavaScript closures through an interactive mechanic with 4-5 rounds, dark theme, gym tone, and a score/end screen.",
+      "files": [],
+      "assertions": [
+        {"text": "Output is a single self-contained HTML file with no external script or stylesheet dependencies"},
+        {"text": "Game has a visible round counter (e.g. Round X of Y)"},
+        {"text": "Game has a visible score display"},
+        {"text": "Game uses the dark color scheme (#09090b or similar dark background)"},
+        {"text": "Game has 4 or 5 playable rounds"},
+        {"text": "Correct answer feedback is visually distinct (green color or positive message)"},
+        {"text": "Wrong answer feedback shows the correct answer with an explanation"},
+        {"text": "Game has an end/completion screen with a score summary"},
+        {"text": "Copy uses gym/training language (e.g. 'rep', 'round', 'locked in', 'good rep')"},
+        {"text": "The challenges require reasoning about actual JavaScript closure code — not just definitions"}
+      ]
+    },
+    {
+      "id": 1,
+      "prompt": "make a brainrot game about the JavaScript event loop and async/await",
+      "expected_output": "A self-contained HTML5 game teaching async execution order, ideally using the Execution Order mechanic, with 4-5 rounds, dark theme, gym tone, and end screen.",
+      "files": [],
+      "assertions": [
+        {"text": "Output is a single self-contained HTML file with no external script or stylesheet dependencies"},
+        {"text": "Game has a visible round counter"},
+        {"text": "Game has a visible score display"},
+        {"text": "Game uses the dark color scheme"},
+        {"text": "Game has 4 or 5 playable rounds"},
+        {"text": "Game mechanic involves ordering or sequencing (execution order), not just multiple choice"},
+        {"text": "Wrong answer feedback shows the correct execution order with an explanation"},
+        {"text": "Game has an end/completion screen with a score summary"},
+        {"text": "Challenges involve real async/await or Promise code snippets"}
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "I keep messing up array destructuring in JS. Can you make a game that drills me on it?",
+      "expected_output": "A self-contained HTML5 game that drills array destructuring through 4-5 rounds covering different patterns (basic, skip, rest, defaults), dark theme, gym tone, end screen.",
+      "files": [],
+      "assertions": [
+        {"text": "Output is a single self-contained HTML file with no external script or stylesheet dependencies"},
+        {"text": "Game has a visible round counter"},
+        {"text": "Game has a visible score display"},
+        {"text": "Game uses the dark color scheme"},
+        {"text": "Game has 4 or 5 playable rounds"},
+        {"text": "Rounds cover at least 3 distinct destructuring patterns (e.g. basic, rest, defaults, nested, skipping)"},
+        {"text": "Wrong answer feedback shows the correct destructuring result with an explanation"},
+        {"text": "Game has an end/completion screen with a score summary"}
+      ]
+    }
+  ]
+}
