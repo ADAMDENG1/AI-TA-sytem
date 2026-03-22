@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Brainrot Reducer</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #09090b;
+  --s1: #111113;
+  --s2: #1a1a1e;
+  --s3: #26262c;
+  --border: rgba(255,255,255,0.06);
+  --border2: rgba(255,255,255,0.11);
+  --text: #f2ede3;
+  --sub: #c8c2b4;
+  --dim: #888;
+  --muted: #3a3a42;
+  --red: #e83636;
+  --red-dim: rgba(232,54,54,0.08);
+  --red-border: rgba(232,54,54,0.25);
+  --amber: #f0a030;
+  --green: #2ab870;
+  --mono: 'JetBrains Mono','Fira Code','Courier New',monospace;
+}
+html, body { height: 100%; background: var(--bg); color: var(--text); font-family: system-ui,-apple-system,sans-serif; }
+body {
+  display: flex; flex-direction: column;
+  background-image:
+    linear-gradient(rgba(255,255,255,.016) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.016) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+.screen { display: none; flex: 1; flex-direction: column; }
+.screen.active { display: flex; }
+
+/* ─── Landing ─── */
+#landing {
+  align-items: center; justify-content: center;
+  padding: 48px 24px; text-align: center; min-height: 100vh; gap: 0;
+}
+.l-eyebrow {
+  font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .2em;
+  color: var(--red); margin-bottom: 32px; font-family: var(--mono);
+  display: flex; align-items: center; gap: 10px; justify-content: center;
+}
+.l-eyebrow::before, .l-eyebrow::after { content:''; width:28px; height:1px; background:var(--red); opacity:.5; }
+.l-title {
+  font-size: clamp(44px, 9vw, 82px); font-weight: 800; letter-spacing: -0.04em;
+  line-height: 1.0; margin-bottom: 24px; text-transform: uppercase;
+}
+.l-title em { color: var(--red); font-style: normal; display: block; }
+.l-sub { font-size: 15px; color: var(--sub); line-height: 1.7; max-width: 400px; margin-bottom: 36px; }
+.l-code {
+  background: var(--s1); border: 1px solid var(--border2); border-radius: 8px;
+  padding: 18px 20px; font-family: var(--mono); font-size: 12px; color: var(--sub);
+  text-align: left; max-width: 520px; width: 100%; line-height: 1.8;
+  white-space: pre-wrap; word-break: break-all; max-height: 130px; overflow: hidden;
+  position: relative; margin-bottom: 12px;
+}
+.l-code::after {
+  content:''; position:absolute; bottom:0; left:0; right:0; height:44px;
+  background: linear-gradient(transparent, var(--s1));
+}
+.l-bug {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--red-dim); border: 1px solid var(--red-border);
+  border-radius: 4px; padding: 6px 14px; font-size: 11px; color: var(--red);
+  font-weight: 700; margin-bottom: 36px; font-family: var(--mono); text-transform: uppercase; letter-spacing: .08em;
+}
+.l-btn {
+  background: var(--red); color: #fff; border: none; border-radius: 6px;
+  padding: 17px 48px; font-size: 15px; font-weight: 700; cursor: pointer;
+  letter-spacing: .04em; text-transform: uppercase; font-family: inherit;
+  transition: transform .1s, box-shadow .1s, opacity .1s;
+}
+.l-btn:hover { opacity: .92; transform: translateY(-2px); box-shadow: 0 8px 32px rgba(232,54,54,.3); }
+.l-note { font-size: 11px; color: var(--dim); margin-top: 20px; letter-spacing: .04em; font-family: var(--mono); }
+
+/* ─── Loading ─── */
+#loading { align-items: center; justify-content: center; gap: 28px; min-height: 100vh; }
+.load-eyebrow {
+  font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .2em;
+  color: var(--red); font-family: var(--mono);
+}
+.load-heading { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
+.load-label { font-size: 13px; color: var(--sub); font-family: var(--mono); min-height: 20px; transition: opacity .4s; }
+.load-track {
+  width: 240px; height: 2px; background: var(--s3); border-radius: 2px; overflow: hidden;
+}
+.load-fill {
+  height: 100%; background: var(--red); border-radius: 2px;
+  animation: lfill 2s ease-in-out infinite;
+}
+@keyframes lfill { 0%{width:0;margin-left:0} 50%{width:100%;margin-left:0} 100%{width:0;margin-left:100%} }
+
+/* ─── Game ─── */
+#game { height: 100vh; }
+#gameFrame { width: 100%; height: 100%; border: none; display: block; background: var(--bg); }
+
+/* ─── Score ─── */
+#score { align-items: center; justify-content: center; padding: 40px 24px; min-height: 100vh; }
+.score-inner { max-width: 480px; width: 100%; display: flex; flex-direction: column; gap: 28px; }
+.score-eyebrow {
+  font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .2em;
+  color: var(--dim); font-family: var(--mono); text-align: center;
+  display: flex; align-items: center; gap: 12px; justify-content: center;
+}
+.score-eyebrow::before, .score-eyebrow::after { content:''; flex:1; height:1px; background:var(--border2); }
+.score-pct {
+  font-size: clamp(72px, 16vw, 110px); font-weight: 800; letter-spacing: -0.05em;
+  line-height: 1; font-family: var(--mono); text-align: center;
+}
+.score-pct.hi { color: var(--green); }
+.score-pct.mid { color: var(--amber); }
+.score-pct.lo { color: var(--red); }
+.score-verdict { font-size: 13px; color: var(--sub); text-align: center; font-family: var(--mono); text-transform: uppercase; letter-spacing: .1em; }
+.score-bars { display: flex; flex-direction: column; gap: 14px; }
+.sbar { display: flex; align-items: center; gap: 14px; }
+.sbar-name { font-size: 11px; color: var(--sub); min-width: 120px; font-family: var(--mono); text-transform: uppercase; letter-spacing: .06em; }
+.sbar-track { flex: 1; height: 3px; background: var(--s3); border-radius: 2px; overflow: hidden; }
+.sbar-fill { height: 100%; border-radius: 2px; background: var(--green); transition: width 1.1s cubic-bezier(.16,1,.3,1); width: 0; }
+.sbar-fill.mid { background: var(--amber); }
+.sbar-fill.lo { background: var(--red); }
+.sbar-val { font-family: var(--mono); font-size: 12px; color: var(--sub); min-width: 36px; text-align: right; }
+.score-hr { border: none; border-top: 1px solid var(--border2); }
+.score-feedback {
+  background: var(--s1); border: 1px solid var(--border2); border-radius: 8px;
+  padding: 20px 22px; font-size: 14px; color: var(--sub); line-height: 1.75;
+}
+.score-actions { display: flex; gap: 10px; }
+.score-btn {
+  flex: 1; padding: 14px; border-radius: 6px; font-size: 13px; font-weight: 700;
+  cursor: pointer; transition: opacity .13s, transform .1s; font-family: inherit;
+  text-transform: uppercase; letter-spacing: .08em;
+}
+.score-btn.primary { background: var(--red); color: #fff; border: none; }
+.score-btn:hover { opacity: .86; transform: translateY(-1px); }
+</style>
+</head>
+<body>
+
+<!-- Landing -->
+<div id="landing" class="screen active">
+  <div class="l-eyebrow">Training Program</div>
+  <h1 class="l-title">Cure Your<br><em>Brainrot.</em></h1>
+  <p class="l-sub" id="landingSub">You reached for a fix before you understood the problem. We train that out of you.</p>
+  <div class="l-code" id="codePreview" style="display:none"></div>
+  <div class="l-bug" id="bugTag" style="display:none"></div>
+  <button class="l-btn" onclick="begin()">Enter the training room →</button>
+  <div class="l-note">custom game · ~2 min · no free fixes</div>
+</div>
+
+<!-- Loading -->
+<div id="loading" class="screen">
+  <div class="load-eyebrow">Brainrot Reducer</div>
+  <div class="load-heading" id="loadHeading">Building your game</div>
+  <div class="load-label" id="loadLabel">Analyzing the rot...</div>
+  <div class="load-track"><div class="load-fill"></div></div>
+</div>
+
+<!-- Game (iframe) -->
+<div id="game" class="screen">
+  <iframe id="gameFrame" sandbox="allow-scripts allow-same-origin"></iframe>
+</div>
+
+<!-- Score -->
+<div id="score" class="screen">
+  <div class="score-inner">
+    <div class="score-eyebrow">Session Complete</div>
+    <div class="score-pct" id="sPct">—</div>
+    <div class="score-verdict" id="sVerdict">—</div>
+    <div class="score-bars" id="sBars"></div>
+    <hr class="score-hr">
+    <div class="score-feedback" id="sFeedback"></div>
+    <div class="score-actions">
+      <button class="score-btn primary" onclick="location.reload()">Run it again →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const API_URL = '/api/chat';
+const params  = new URLSearchParams(window.location.search);
+const bug  = params.get('bug')  ? decodeURIComponent(params.get('bug'))  : '';
+const code = params.get('code') ? decodeURIComponent(params.get('code')) : '';
+
+if (code) { const p = document.getElementById('codePreview'); p.textContent = code; p.style.display = 'block'; }
+if (bug) {
+  document.getElementById('bugTag').textContent = '⚠ ' + bug;
+  document.getElementById('bugTag').style.display = 'inline-flex';
+  document.getElementById('landingSub').textContent =
+    `You hit a "${bug}" bug and reached for a fix you didn't understand. We train that out of you.`;
+}
+
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// Loading copy cycles
+const loadingSteps = [
+  'Analyzing the rot...',
+  'Designing your training regimen...',
+  'Generating the game...',
+  'Preparing the arena...',
+  'Almost ready...',
+];
+let loadStep = 0, loadTimer;
+function startLoadCycle() {
+  loadStep = 0;
+  document.getElementById('loadLabel').textContent = loadingSteps[0];
+  loadTimer = setInterval(() => {
+    loadStep = Math.min(loadStep + 1, loadingSteps.length - 1);
+    const el = document.getElementById('loadLabel');
+    el.style.opacity = 0;
+    setTimeout(() => {
+      el.textContent = loadingSteps[loadStep];
+      el.style.opacity = 1;
+    }, 200);
+  }, 3000);
+}
+function stopLoadCycle() { clearInterval(loadTimer); }
+
+function begin() { show('loading'); startLoadCycle(); generate(); }
+
+// Listen for game completion
+window.addEventListener('message', e => {
+  if (e.data?.type === 'done') {
+    stopLoadCycle();
+    showScore(e.data.score ?? 0, e.data.total ?? 1, e.data.feedback ?? '');
+  }
+});
+
+const GAME_PROMPT = `You are building a mini-game for Brainrot Reducer, a coding training tool. Generate a complete, self-contained HTML5 interactive game that teaches the given concept through play — not a quiz.
+
+Output ONLY raw HTML. No markdown fences, no explanation, just the HTML document.
+
+━━━ VISUAL REQUIREMENTS ━━━
+- Fills exactly 100vw × 100vh, no scrollbars
+- Dark theme — use these exact colors:
+  bg: #09090b | surface: #111113 | surface2: #1a1a1e | border: rgba(255,255,255,0.11)
+  text: #f2ede3 | secondary: #c8c2b4 | dim: #888
+  red: #e83636 | green: #2ab870 | amber: #f0a030 | code-purple: #c8b8ff
+- Font: system-ui for prose, 'Courier New' monospace for code
+- All CSS and JS inline in one file
+
+━━━ COMPLETION API ━━━
+When the game ends (win or lose), call exactly:
+  window.parent.postMessage({ type: 'done', score: N, total: N, feedback: 'brief debrief' }, '*')
+score = number of rounds won. total = total rounds. feedback = 2-3 sentence plain-English summary of what the player learned or got wrong.
+
+━━━ GAME DESIGN ━━━
+- 4–5 interactive rounds/challenges
+- Visual and kinetic — the player clicks, drags, types, or selects — never just reads
+- Show a clear round counter (Round X of Y) and current score
+- Immediate animated feedback after each interaction (correct flash, shake on wrong, explanation text)
+- Smooth CSS transitions and animations throughout
+- Large obvious hit targets — this is played fast
+
+━━━ GAME MECHANICS — pick the best fit for the concept ━━━
+
+BUG HUNT: Show code with clickable highlighted tokens. Player clicks the bug.
+Good for: off-by-one, null pointer, wrong operator, type errors
+
+EXPRESSION SNAP: Show an expression. Answer tiles float up from bottom, player clicks the correct result before time runs out (or just clicks — no timer is fine too).
+Good for: operator precedence, type coercion, arithmetic
+
+VARIABLE TRACER: Step through code line by line with a cursor. At highlighted lines, player picks what the variable equals from 3 options.
+Good for: closures, scope, async execution order, loops
+
+EXECUTION ORDER: 4–6 labeled blocks. Player clicks them in the order they execute. Blocks lock in place as they're clicked.
+Good for: async/await, promises, event loop, hoisting
+
+SCOPE SAFARI: Code shown with colored variable references. Player draws lines (or clicks pairs) matching each reference to its binding.
+Good for: closures, scope chains, this binding
+
+FIX THE LINE: One broken line shown. Player clicks tokens from a bank at the bottom to replace the wrong part.
+Good for: syntax errors, wrong method, wrong operator
+
+━━━ TONE ━━━
+Copy uses "Round X", "Rep X", "Locked in", "Good rep", "Weak rep". Training gym energy — intense but not mean.
+Show the correct answer and a one-line explanation after every wrong answer.
+
+Make it feel like a real game, not a quiz wrapped in HTML.`;
+
+async function generate() {
+  const userMsg = [
+    code ? `Broken code:\n\`\`\`\n${code}\n\`\`\`` : '',
+    bug  ? `Concept / bug type: ${bug}` : '',
+    (!code && !bug) ? 'Concept: JavaScript async/await and the event loop' : ''
+  ].filter(Boolean).join('\n\n');
+
+  try {
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 4000,
+        system: GAME_PROMPT,
+        messages: [{ role: 'user', content: userMsg }]
+      })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message);
+
+    let html = data.content?.[0]?.text || '';
+    // Strip accidental markdown fences if Claude wraps it anyway
+    html = html.replace(/^```(?:html)?\n?/i, '').replace(/\n?```$/i, '').trim();
+
+    stopLoadCycle();
+    const frame = document.getElementById('gameFrame');
+    frame.srcdoc = html;
+    show('game');
+
+  } catch(e) {
+    stopLoadCycle();
+    document.getElementById('loadLabel').textContent = '⚠ ' + e.message;
+  }
+}
+
+function showScore(score, total, feedback) {
+  show('score');
+  const pct = Math.round((score / total) * 100);
+  const tier = pct >= 75 ? 'hi' : pct >= 50 ? 'mid' : 'lo';
+
+  document.getElementById('sPct').textContent = pct + '%';
+  document.getElementById('sPct').className = 'score-pct ' + tier;
+
+  const verdicts = {
+    hi:  `${score} of ${total} correct — brainrot eliminated`,
+    mid: `${score} of ${total} correct — still recovering`,
+    lo:  `${score} of ${total} correct — more reps needed`
+  };
+  document.getElementById('sVerdict').textContent = verdicts[tier];
+  document.getElementById('sFeedback').textContent = feedback ||
+    (tier === 'hi'
+      ? `You understand ${bug || 'this concept'} now — not just the fix, but the reason it works.`
+      : `Keep training. Review what tripped you up and run the examples yourself.`);
+
+  document.getElementById('sBars').innerHTML = `
+    <div class="sbar">
+      <div class="sbar-name">Accuracy</div>
+      <div class="sbar-track"><div class="sbar-fill ${tier === 'hi' ? '' : tier}" id="baracc" style="width:0"></div></div>
+      <div class="sbar-val">${pct}%</div>
+    </div>
+    <div class="sbar">
+      <div class="sbar-name">Rounds done</div>
+      <div class="sbar-track"><div class="sbar-fill" style="width:100%"></div></div>
+      <div class="sbar-val">${total}/${total}</div>
+    </div>
+  `;
+  setTimeout(() => { document.getElementById('baracc').style.width = pct + '%'; }, 80);
+}
+</script>
+</body>
+</html>
