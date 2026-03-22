@@ -34,3 +34,4 @@ build/
 .cache/
 coverage/
 personal-infos/
+knowledge-profile/*
